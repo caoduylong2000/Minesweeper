@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Game : MonoBehaviour
@@ -176,7 +177,7 @@ public class Game : MonoBehaviour
                 break;
 
             case Cell.Type.Empty:
-                Flood(cell);
+                StartCoroutine(Flood(cell));
                 CheckWinCondition();
                 break;
 
@@ -190,23 +191,27 @@ public class Game : MonoBehaviour
         board.Draw(cells);
     }
 
-    private void Flood(Cell cell)
+    private IEnumerator Flood(Cell cell)
     {
         // Recursive exit conditions
-        if (cell.revealed) return;
-        if (cell.type == Cell.Type.Mine || cell.type == Cell.Type.Invalid) return;
+        if (cell.revealed) yield break;
+        if (cell.type == Cell.Type.Mine || cell.type == Cell.Type.Invalid) yield break;
 
         // Reveal the cell
         cell.revealed = true;
         cells[cell.position.x, cell.position.y] = cell;
 
+        // Wait before continuing the flood
+        board.Draw(cells);
+        yield return new WaitForEndOfFrame();
+
         // Keep flooding if the cell is empty, otherwise stop at numbers
         if (cell.type == Cell.Type.Empty)
         {
-            Flood(GetCell(cell.position.x - 1, cell.position.y));
-            Flood(GetCell(cell.position.x + 1, cell.position.y));
-            Flood(GetCell(cell.position.x, cell.position.y - 1));
-            Flood(GetCell(cell.position.x, cell.position.y + 1));
+            StartCoroutine(Flood(GetCell(cell.position.x - 1, cell.position.y)));
+            StartCoroutine(Flood(GetCell(cell.position.x + 1, cell.position.y)));
+            StartCoroutine(Flood(GetCell(cell.position.x, cell.position.y - 1)));
+            StartCoroutine(Flood(GetCell(cell.position.x, cell.position.y + 1)));
         }
     }
 
